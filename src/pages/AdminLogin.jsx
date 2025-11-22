@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import { MoveLeft } from "lucide-react";
-import { API_BASE_URL } from "../config/api";
+import { authService } from "../api/services";
 
 const AdminLogin = () => {
   const [username, setUsername] = useState("");
@@ -25,7 +25,7 @@ const AdminLogin = () => {
 
     if (admin_token && location.pathname !== "/admin/dashboard") {
       navigate("/admin/dashboard", { replace: true });
-    }else if(!admin_token && location.pathname !== "/admin"){
+    } else if (!admin_token && location.pathname !== "/admin") {
       navigate("/admin", { replace: true });
     }
   }, [navigate, location.pathname]);
@@ -35,34 +35,20 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
-      const payload = {
-        username: username.trim(),
-        password, // plaintext; backend will verify against stored hash
-      };
+      const response = await authService.loginAdmin(username.trim(), password);
 
-      const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        const errorMessage =
-          data.message || "Gagal login. Periksa kredensial Anda.";
-        toast.error(errorMessage);
-        return;
-      }
-      if (data.success) {
-        localStorage.setItem("admin_token", data.token);
+      // Backend returns { status: 'success', token: '...', admin: {...} }
+      if (response.status === "success" || response.token) {
         toast.success("Login admin berhasil!");
         navigate("/admin/dashboard");
       } else {
-        toast.error("Username atau password salah.");
+        toast.error(response.message || "Username atau password salah.");
       }
     } catch (error) {
+      console.error("Admin login error:", error);
       toast.error(
-        "Koneksi ke server gagal. Pastikan backend ReactPHP berjalan."
+        error.message ||
+          "Koneksi ke server gagal. Pastikan backend Laravel berjalan."
       );
     } finally {
       setLoading(false);

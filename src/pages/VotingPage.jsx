@@ -4,10 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { CheckCircle2 } from "lucide-react";
-import { API_BASE_URL } from "../config/api";
-
-// Import data kandidat dari file JSON lokal
-import candidatesData from "../data/candidates.json";
+import { kandidatService, voteService } from "../api/services";
 
 const VotingPage = () => {
   const [candidates, setCandidates] = useState([]);
@@ -40,18 +37,30 @@ const VotingPage = () => {
   }, [navigate]);
 
   useEffect(() => {
-    // Ambil kandidat dari file JSON (synchronous import)
-    try {
-      if (!Array.isArray(candidatesData)) {
-        throw new Error("Format candidates.json tidak valid (harus berupa array).");
+    // Fetch candidates from Laravel backend
+    const fetchCandidates = async () => {
+      try {
+        const response = await kandidatService.getAll();
+
+        // Backend returns { status: 'success', data: [...] }
+        if (response.status === "success" && Array.isArray(response.data)) {
+          setCandidates(response.data);
+        } else if (response.success && Array.isArray(response.data)) {
+          setCandidates(response.data);
+        } else if (Array.isArray(response)) {
+          setCandidates(response);
+        } else {
+          throw new Error("Format response tidak valid");
+        }
+      } catch (err) {
+        console.error("Gagal memuat data kandidat:", err);
+        setCandError(err.message || "Gagal memuat kandidat dari server.");
+      } finally {
+        setCandLoading(false);
       }
-      setCandidates(candidatesData);
-    } catch (err) {
-      console.error("Gagal memuat data kandidat dari file JSON:", err);
-      setCandError("Gagal memuat kandidat (file lokal rusak).");
-    } finally {
-      setCandLoading(false);
-    }
+    };
+
+    fetchCandidates();
   }, []);
 
   // Auto-logout helper
@@ -59,31 +68,23 @@ const VotingPage = () => {
     localStorage.removeItem("voter_id");
     localStorage.removeItem("voter_nim");
     localStorage.removeItem("voter_name");
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("voter_token");
     navigate("/voter");
   };
 
   const handleConfirmVote = async () => {
-    // pastikan ada voterId lagi sebelum mengirim
-    if (!voterId) {
-      toast.error("Informasi pemilih tidak ditemukan. Silakan login ulang.");
+    if (!selectedCandidate) {
+      toast.error("Pilih kandidat terlebih dahulu.");
       return;
     }
 
     setVoting(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/vote`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          voter_id: voterId,
-          candidate_id: selectedCandidate,
-        }),
-      });
+      const response = await voteService.vote(selectedCandidate);
 
-      const data = await response.json();
-
-      if (data?.success) {
+      if (response.success || response.message?.includes("berhasil")) {
         setConfirmOpen(false);
         setVoteComplete(true);
         setLogoutSeconds(60);
@@ -91,11 +92,13 @@ const VotingPage = () => {
           duration: 3000,
         });
       } else {
-        toast.error(data?.message || "Gagal menyimpan suara. Silakan coba lagi.");
+        toast.error(
+          response.message || "Gagal menyimpan suara. Silakan coba lagi."
+        );
       }
     } catch (error) {
       console.error("Error saat vote:", error);
-      toast.error("Koneksi ke server gagal.");
+      toast.error(error.message || "Koneksi ke server gagal.");
     } finally {
       setVoting(false);
     }
@@ -125,6 +128,7 @@ const VotingPage = () => {
     if (voteComplete && logoutSeconds <= 0) {
       performLogout();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [voteComplete, logoutSeconds]);
 
   const selectedDetail = candidates.find((x) => x.id === selectedCandidate);
@@ -135,12 +139,18 @@ const VotingPage = () => {
         <Card className="w-full max-w-md text-center border-success/50">
           <CardContent className="pt-12 pb-12">
             <CheckCircle2 className="w-20 h-20 mx-auto text-secondary mb-6" />
-            <h2 className="text-3xl font-bold text-secondary mb-4">Suara Anda Tercatat!</h2>
+            <h2 className="text-3xl font-bold text-secondary mb-4">
+              Suara Anda Tercatat!
+            </h2>
             <p className="text-lg text-muted-foreground" aria-live="polite">
-              Terima kasih atas partisipasi Anda dalam Pemilihan Raya PMK ITERA 2025. Anda akan otomatis logout dalam{" "}
-              {logoutSeconds} detik.
+              Terima kasih atas partisipasi Anda dalam Pemilihan Raya PMK ITERA
+              2025. Anda akan otomatis logout dalam {logoutSeconds} detik.
             </p>
-            <Button className="mt-6" variant="secondary" onClick={performLogout}>
+            <Button
+              className="mt-6"
+              variant="secondary"
+              onClick={performLogout}
+            >
               Logout sekarang
             </Button>
           </CardContent>
@@ -153,11 +163,19 @@ const VotingPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-[#f1c662d3] to-[#511600a1] py-12 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-primary mb-3">Syalom, {voterName}</h1>
-          <p className="text-lg text-[#511600a1]">Pilih salah satu pasangan kandidat</p>
+          <h1 className="text-4xl font-bold text-primary mb-3">
+            Syalom, {voterName}
+          </h1>
+          <p className="text-lg text-[#511600a1]">
+            Pilih salah satu pasangan kandidat
+          </p>
         </div>
 
-        {candError && <div className="text-center text-red-600 mb-8 text-sm">{candError}</div>}
+        {candError && (
+          <div className="text-center text-red-600 mb-8 text-sm">
+            {candError}
+          </div>
+        )}
 
         {/* Cards Kandidat */}
         {!candLoading && !candError && candidates.length > 0 && (
@@ -183,23 +201,38 @@ const VotingPage = () => {
                 </div>
 
                 <div className="p-6 flex-1 flex flex-col">
-                  <h3 className="text-xl font-bold text-[#2A1E09] mb-1">{c.nama}</h3>
+                  <h3 className="text-xl font-bold text-[#2A1E09] mb-1">
+                    {c.nama}
+                  </h3>
                   <p className="text-sm font-medium text-gray-500 mb-5">
-                    {c.prodi || "Teknik Informatika"} | Angkatan {c.angkatan || "1990"}
+                    {c.prodi || "Teknik Informatika"} | Angkatan{" "}
+                    {c.angkatan || "1990"}
                   </p>
 
                   <div className="space-y-4 flex-1">
                     <div>
-                      <p className="font-semibold text-[#924603] mb-2 text-base">Visi</p>
+                      <p className="font-semibold text-[#924603] mb-2 text-base">
+                        Visi
+                      </p>
                       <blockquote className="border-l-4 border-[#F1C762] pl-4 italic text-muted-foreground">
-                        {c.visi?.[0] ?? "Visi tidak tersedia"}
+                        {Array.isArray(c.visi)
+                          ? c.visi[0]
+                          : c.visi || "Visi tidak tersedia"}
                       </blockquote>
                     </div>
 
                     <details className="text-base">
-                      <summary className="font-semibold text-[#924603] cursor-pointer hover:underline">Lihat Misi</summary>
+                      <summary className="font-semibold text-[#924603] cursor-pointer hover:underline">
+                        Lihat Misi
+                      </summary>
                       <ul className="list-disc list-inside space-y-1 mt-2 pl-4 text-muted-foreground">
-                        {c.misi?.length ? c.misi.map((m, i) => <li key={i}>{m}</li>) : <li className="italic">Misi tidak tersedia</li>}
+                        {Array.isArray(c.misi) ? (
+                          c.misi.map((m, i) => <li key={i}>{m}</li>)
+                        ) : c.misi ? (
+                          <li>{c.misi}</li>
+                        ) : (
+                          <li className="italic">Misi tidak tersedia</li>
+                        )}
                       </ul>
                     </details>
                   </div>
@@ -224,32 +257,54 @@ const VotingPage = () => {
         )}
 
         {!candLoading && !candError && candidates.length === 0 && (
-          <div className="text-center py-20 text-muted-foreground">Belum ada data kandidat.</div>
+          <div className="text-center py-20 text-muted-foreground">
+            Belum ada data kandidat.
+          </div>
         )}
 
         {/* Custom modal konfirmasi */}
         {confirmOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !voting && setConfirmOpen(false)} />
+            <div
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              onClick={() => !voting && setConfirmOpen(false)}
+            />
             <div className="relative bg-white dark:bg-neutral-900 w-full max-w-sm rounded-lg shadow-lg border p-6 animate-in fade-in zoom-in">
-              <h2 className="text-2xl font-semibold mb-4">Konfirmasi Pilihan</h2>
+              <h2 className="text-2xl font-semibold mb-4">
+                Konfirmasi Pilihan
+              </h2>
               <div className="text-base text-primary space-y-3">
                 <p>
-                  Anda memilih <strong>Kandidat {selectedCandidate || "-"}</strong>.
+                  Anda memilih{" "}
+                  <strong>Kandidat {selectedCandidate || "-"}</strong>.
                 </p>
                 {selectedDetail && (
                   <div className="rounded-md text-center flex flex-col items-center justify-center">
-                    <img src={selectedDetail.foto_url} className="w-[70%] h-auto rounded-md" alt={selectedDetail.nama} />
+                    <img
+                      src={selectedDetail.foto_url}
+                      className="w-[70%] h-auto rounded-md"
+                      alt={selectedDetail.nama}
+                    />
                     <p className="font-semibold pt-3">{selectedDetail.nama}</p>
                   </div>
                 )}
-                <p>Pilihan tidak dapat diubah setelah dikonfirmasi. Lanjutkan?</p>
+                <p>
+                  Pilihan tidak dapat diubah setelah dikonfirmasi. Lanjutkan?
+                </p>
               </div>
               <div className="mt-6 flex gap-3 justify-end">
-                <Button variant="outline" disabled={voting} onClick={() => setConfirmOpen(false)}>
+                <Button
+                  variant="outline"
+                  disabled={voting}
+                  onClick={() => setConfirmOpen(false)}
+                  className="hover:text-white"
+                >
                   Batal
                 </Button>
-                <Button onClick={handleConfirmVote} disabled={voting || !selectedCandidate || !voterId}>
+                <Button
+                  onClick={handleConfirmVote}
+                  disabled={voting || !selectedCandidate || !voterId}
+                >
                   {voting ? "Memproses..." : "Ya, Konfirmasi"}
                 </Button>
               </div>

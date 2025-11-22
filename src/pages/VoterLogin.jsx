@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import { MoveLeft } from "lucide-react";
-import { API_BASE_URL } from "../config/api";
+import { authService } from "../api/services";
 
 const VoterLogin = () => {
   const [nim, setNim] = useState("");
@@ -32,27 +32,22 @@ const VoterLogin = () => {
     setLoading(true);
 
     try {
-      // Call ReactPHP backend API
-      const response = await fetch(`${API_BASE_URL}/api/voter/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nim, token }),
-      });
+      const response = await authService.loginPemilih(nim, token);
 
-      const data = await response.json();
-
-      if (data.success) {
-        localStorage.setItem("voter_id", data.voter_id);
-        localStorage.setItem("voter_nim", nim);
-        localStorage.setItem("voter_name", data.voter_name);
+      // Backend returns { status: 'success', token: '...', pemilih: {...} }
+      if (response.status === "success" || response.token) {
         toast.success("Login berhasil!");
         navigate("/voting");
       } else {
-        toast.error(data.message || "Login gagal. Periksa NIM dan Token Anda.");
+        toast.error(
+          response.message || "Login gagal. Periksa NIM dan Token Anda."
+        );
       }
     } catch (error) {
+      console.error("Login error:", error);
       toast.error(
-        "Koneksi ke server gagal. Pastikan backend ReactPHP berjalan."
+        error.message ||
+          "Koneksi ke server gagal. Pastikan backend Laravel berjalan."
       );
     } finally {
       setLoading(false);

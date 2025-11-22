@@ -27,7 +27,9 @@ const AdminSidebar = ({
             <img
               src="https://res.cloudinary.com/dm3zixaz4/image/upload/v1763313569/Logo_Utama_dxucb5.png"
               alt="Logo"
-              className={`${collapsed ? "h-0" : "h-14"} w-auto object-contain transition-all`}
+              className={`${
+                collapsed ? "h-0" : "h-14"
+              } w-auto object-contain transition-all`}
             />
           </div>
           <div

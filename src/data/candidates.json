@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "no_urut": 1,
+    "nama": "Masta Hendri Setiawan Lature",
+    "prodi": "Teknik Pertambangan",
+    "angkatan": "2023",
+    "foto_url": "https://res.cloudinary.com/dm3zixaz4/image/upload/v1763314983/Kandidat_1_yazots.png",
+    "visi": ["Menjadikan PMK sebagai wadah untuk menjangkau, melayani, dan pembentukan karakter yang berpusat pada Kristus, serta berdampak bagi lingkungan sekitar"],
+    "misi": ["Menjadikan PMK sebagai wadah untuk bertumbuh dan berkembangnya suatu potensi talenta yang melayani dan spritual", 
+            "Membangun lingkungan persekutuan yang hangat dan inklusif di mana setiap individu merasa diterima, dihargai, dan bertumbuh bersama.",
+            "Merangkul seluruh civitas akademika ITERA dalam membangun relasi, komunikasi, untuk membangun pelayan yang ada di PMK ITERA",
+            "Membangun serta menjalin hubungan yang baik antara PMK dengan Mitra guna mengembangkan pelayanan di dalam maupun diluar ITERA",
+            "Melakukan kegiatan sosial dan pengabdian masyarakat yang berdampak positif",
+            "Regenerasi PMK ITERA melalui pemuridan yang berlandaskan Alkitab perbaiki teks ini agar enternya tidak berantakan"]
+  },
+  {
+    "id": 2,
+    "no_urut": 2,
+    "nama": "Erwandi Pantun Pardede",
+    "prodi": "Teknik Elektro",
+    "angkatan": "2023",
+    "foto_url": "https://res.cloudinary.com/dm3zixaz4/image/upload/v1763314983/Kandidat_2_l502wt.png",
+    "visi": ["Mewujudkan PMK ITERA sebagai wadah pembentukan mahasiswa Kristen yang berkarakter Kristus yang memimpin dengan kasih, melayani dengan kerendahan hati, dan membangun kesatuan dalam tubuh Kristus."],
+    "misi": ["Menumbuhkan iman dan karakter Kristus dalam diri setiap mahasiswa Kristen. (Kolose 2:6–7)", 
+            "Membentuk kepemimpinan yang berlandaskan kasih dan kerendahan hati. (Markus 10:45)", 
+            "Membangun kesatuan tubuh Kristus di lingkungan kampus yang berlandaskan sifat gerejawi. (Efesus 4:3–6)"]
+  }
+]

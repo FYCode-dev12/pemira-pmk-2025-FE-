@@ -1,68 +1,129 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@font-face {
+  font-family: "ArchivoVar";
+  src: url("https://res.cloudinary.com/dm3zixaz4/raw/upload/v1763313569/Archivo-VariableFont_wdth_wght_pfwhir.ttf") format("truetype");
+  font-weight: 100 900;        
+  font-stretch: 75% 125%;       
+  font-display: swap;
 }
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+@font-face {
+  font-family: "ArchivoItalic";
+  src: url("https://res.cloudinary.com/dm3zixaz4/raw/upload/v1763313569/Archivo-Italic-VariableFont_wdth_wght_xygrfh.ttf") format("truetype");
+  font-weight: 100 900;
+  font-stretch: 75% 125%;
+  font-display: swap;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
+@layer base {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    /* Pemilu Design System - Coklat, Beige, Putih, Hitam */
+    --background: 0 0% 100%; /* Putih untuk background utama */
+    --foreground: 0 0% 10%; /* Hampir hitam untuk teks */
+
+    --card: 40 20% 96%; /* Beige muda untuk card */
+    --card-foreground: 0 0% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+
+    /* Converted from hex: #2A1E09, #F1C762, #F7941D, #924603 */
+    --primary: 38 65% 10%; /* #2A1E09 */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 42 84% 66%; /* #F1C762 */
+    --secondary-foreground: 0 0% 10%;
+
+    --muted: 40 20% 92%;
+    --muted-foreground: 0 0% 40%;
+
+    --brand-orange: 33 93% 54%; /* #F7941D */
+    --accent: 28 96% 29%; /* #924603 */
+    --accent-foreground: 0 0% 10%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 40 25% 85%;
+    --input: 40 25% 90%;
+    --ring: 25 45% 35%;
+
+    --radius: 0.75rem;
+    
+    --chart-1: 25 55% 45%; /* Coklat untuk kandidat 1 */
+    --chart-2: 35 50% 60%; /* Coklat muda untuk kandidat 2 */
+    --chart-3: 40 35% 75%; /* Beige untuk fakultas */
+    --chart-4: 45 40% 80%;
+    --chart-5: 30 45% 50%;
   }
-  a:hover {
-    color: #747bff;
+
+  .dark {
+    --background: 25 25% 15%;
+    --foreground: 40 20% 95%;
+
+    --card: 25 20% 20%;
+    --card-foreground: 40 20% 95%;
+
+    --popover: 25 25% 15%;
+    --popover-foreground: 40 20% 95%;
+
+    --primary: 35 50% 50%;
+    --primary-foreground: 0 0% 10%;
+
+    --secondary: 30 20% 25%;
+    --secondary-foreground: 40 20% 95%;
+
+    --muted: 30 20% 25%;
+    --muted-foreground: 40 15% 65%;
+
+    --accent: 35 35% 35%;
+    --accent-foreground: 40 20% 95%;
+
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 30 20% 30%;
+    --input: 30 20% 25%;
+    --ring: 35 50% 50%;
+
+    --chart-1: 35 55% 55%;
+    --chart-2: 40 50% 65%;
+    --chart-3: 45 40% 70%;
+    --chart-4: 50 40% 75%;
+    --chart-5: 30 50% 50%;
   }
-  button {
-    background-color: #f9f9f9;
+}
+
+@layer utilities {
+
+  .hero-padding {
+    padding-top: clamp(7rem, 12vw, 11rem);
+    padding-bottom: clamp(3rem, 7vw, 5rem);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "ArchivoVar", system-ui, sans-serif, ui-sans-serif;
+  }
+  h1,h2,h3,h4{
+    font-family: "ArchivoVar", system-ui, sans-serif, ui-sans-serif;
   }
 }

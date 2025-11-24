@@ -625,7 +625,7 @@ const AdminDashboard = () => {
                                     <TableCell>{voter.fakultas}</TableCell>
                                     <TableCell>{voter.program_studi}</TableCell>
                                     <TableCell>
-                                      {voter.sudah_memilih ? (
+                                      {voter.sudah_memilih === 1 ? (
                                         <Badge
                                           variant="default"
                                           className="bg-green-500 hover:bg-green-500 p-1 text-center"

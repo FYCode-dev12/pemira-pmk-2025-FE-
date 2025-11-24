@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { CheckCircle2 } from "lucide-react";
 import { kandidatService, voteService } from "../api/services";
+import candidatesData from "../data/candidates.json";
 
 const VotingPage = () => {
   const [candidates, setCandidates] = useState([]);
@@ -44,11 +45,11 @@ const VotingPage = () => {
 
         // Backend returns { status: 'success', data: [...] }
         if (response.status === "success" && Array.isArray(response.data)) {
-          setCandidates(response.data);
+          setCandidates(candidatesData);
         } else if (response.success && Array.isArray(response.data)) {
-          setCandidates(response.data);
+          setCandidates(candidatesData);
         } else if (Array.isArray(response)) {
-          setCandidates(response);
+          setCandidates(candidatesData);
         } else {
           throw new Error("Format response tidak valid");
         }

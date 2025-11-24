@@ -22,7 +22,14 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { Users, CheckCircle, XCircle, TrendingUp, LogOut } from "lucide-react";
+import {
+  Users,
+  CheckCircle,
+  XCircle,
+  TrendingUp,
+  LogOut,
+  Power,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Search } from "lucide-react";
@@ -61,6 +68,8 @@ const AdminDashboard = () => {
     total_pages: 0,
   });
   const [shouldResetPage, setShouldResetPage] = useState(false);
+  const [votingStatus, setVotingStatus] = useState(false);
+  const [votingStatusLoading, setVotingStatusLoading] = useState(false);
   const navigate = useNavigate();
 
   // Fetch voters - single source of truth
@@ -126,7 +135,11 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchStats();
-    const interval = setInterval(fetchStats, 5000); // Refresh every 5 seconds
+    fetchVotingStatus();
+    const interval = setInterval(() => {
+      fetchStats();
+      fetchVotingStatus();
+    }, 5000); // Refresh every 5 seconds
     return () => clearInterval(interval);
   }, []);
 
@@ -186,6 +199,38 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchVotingStatus = async () => {
+    try {
+      const response = await adminService.getVotingStatus();
+      if (response.status === "success") {
+        setVotingStatus(response.data?.is_open || false);
+      }
+    } catch (error) {
+      console.error("Failed to fetch voting status:", error);
+    }
+  };
+
+  const handleToggleVoting = async () => {
+    setVotingStatusLoading(true);
+    try {
+      const newStatus = !votingStatus;
+      const response = await adminService.toggleVotingStatus(newStatus);
+      if (response.status === "success") {
+        setVotingStatus(newStatus);
+        toast.success(
+          newStatus ? "Voting berhasil dibuka" : "Voting berhasil ditutup"
+        );
+      } else {
+        toast.error(response.message || "Gagal mengubah status voting");
+      }
+    } catch (error) {
+      console.error("Failed to toggle voting:", error);
+      toast.error("Gagal mengubah status voting");
+    } finally {
+      setVotingStatusLoading(false);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await authService.logout();
@@ -203,14 +248,14 @@ const AdminDashboard = () => {
         name:
           stats.kandidatData.find((k) => k.nomor_urut === 1)?.nama ||
           "Kandidat 1",
-        value: stats.candidate1,
+        suara: stats.candidate1,
         color: "hsl(var(--chart-1))",
       },
       {
         name:
           stats.kandidatData.find((k) => k.nomor_urut === 2)?.nama ||
           "Kandidat 2",
-        value: stats.candidate2,
+        suara: stats.candidate2,
         color: "hsl(var(--chart-2))",
       },
     ],
@@ -253,6 +298,46 @@ const AdminDashboard = () => {
             </div>
           ) : (
             <>
+              {/* Voting Control Toggle */}
+              <Card className="shadow-lg mb-6">
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Power
+                        className={`w-8 h-8 ${
+                          votingStatus ? "text-green-500" : "text-red-500"
+                        }`}
+                      />
+                      <div>
+                        <h3 className="font-semibold text-lg">Status Voting</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {votingStatus
+                            ? "Voting sedang dibuka"
+                            : "Voting sedang ditutup"}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleToggleVoting}
+                      disabled={votingStatusLoading}
+                      className={`relative inline-flex h-12 w-24 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                        votingStatus ? "bg-green-500" : "bg-gray-300"
+                      } ${
+                        votingStatusLoading
+                          ? "opacity-50 cursor-not-allowed"
+                          : "cursor-pointer"
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-10 w-10 transform rounded-full bg-white shadow-lg transition-transform ${
+                          votingStatus ? "translate-x-[3.25rem]" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </CardContent>
+              </Card>
+
               <div className="grid md:grid-cols-4 gap-6 mb-8">
                 <Card className="shadow-lg">
                   <CardHeader className="pb-3">
@@ -383,7 +468,7 @@ const AdminDashboard = () => {
                             <XAxis dataKey="name" />
                             <YAxis />
                             <Tooltip />
-                            <Bar dataKey="value" fill="hsl(var(--primary))" />
+                            <Bar dataKey="suara" fill="hsl(var(--primary))" />
                           </BarChart>
                         </ResponsiveContainer>
                       </CardContent>
@@ -477,7 +562,7 @@ const AdminDashboard = () => {
                                     textAnchor={x > cx ? "start" : "end"}
                                     dominantBaseline="central"
                                     style={{
-                                      fontSize: "14px",
+                                      fontSize: "12px",
                                       fontWeight: "bold",
                                     }}
                                   >
@@ -610,6 +695,7 @@ const AdminDashboard = () => {
                                   <TableHead>Nama</TableHead>
                                   <TableHead>Fakultas</TableHead>
                                   <TableHead>Program Studi</TableHead>
+                                  <TableHead>Token</TableHead>
                                   <TableHead>Status</TableHead>
                                   <TableHead>Waktu Memilih</TableHead>
                                 </TableRow>
@@ -624,6 +710,22 @@ const AdminDashboard = () => {
                                     <TableCell>{voter.nama}</TableCell>
                                     <TableCell>{voter.fakultas}</TableCell>
                                     <TableCell>{voter.program_studi}</TableCell>
+                                    <TableCell>
+                                      <button
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(
+                                            voter.token
+                                          );
+                                          toast.success(
+                                            "Token berhasil disalin!"
+                                          );
+                                        }}
+                                        className="px-3 py-1.5 rounded-md bg-muted hover:bg-primary hover:text-white font-mono text-sm cursor-pointer transition-all duration-200 active:scale-95"
+                                        title="Klik untuk menyalin token"
+                                      >
+                                        {voter.token}
+                                      </button>
+                                    </TableCell>
                                     <TableCell>
                                       {voter.sudah_memilih === 1 ? (
                                         <Badge

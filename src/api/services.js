@@ -148,6 +148,21 @@ export const adminService = {
       method: "GET",
     });
   },
+
+  // Get voting status
+  getVotingStatus: async () => {
+    return await apiFetch("/admin/voting-status", {
+      method: "GET",
+    });
+  },
+
+  // Toggle voting status
+  toggleVotingStatus: async (isOpen) => {
+    return await apiFetch("/admin/voting-status", {
+      method: "POST",
+      body: { is_open: isOpen },
+    });
+  },
 };
 
 export default {

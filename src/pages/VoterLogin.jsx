@@ -36,6 +36,15 @@ const VoterLogin = () => {
 
       // Backend returns { status: 'success', token: '...', pemilih: {...} }
       if (response.status === "success" || response.token) {
+        // Cek apakah pemilih sudah melakukan voting
+        if (response.pemilih?.sudah_memilih) {
+          toast.error(
+            "Token sudah digunakan. Anda telah melakukan voting sebelumnya."
+          );
+          setLoading(false);
+          return;
+        }
+
         toast.success("Login berhasil!");
         navigate("/voting");
       } else {

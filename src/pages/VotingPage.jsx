@@ -35,6 +35,25 @@ const VotingPage = () => {
 
     setVoterId(id);
     setVoterName(name || "Pemilih");
+
+    // Cek status voting pemilih
+    const checkVotingStatus = async () => {
+      try {
+        const response = await voteService.getStatus();
+        if (response.status === "success" && response.sudah_memilih) {
+          toast.error("Anda sudah melakukan voting sebelumnya.");
+          // Redirect ke halaman login setelah 2 detik
+          setTimeout(() => {
+            localStorage.clear();
+            navigate("/voter", { replace: true });
+          }, 2000);
+        }
+      } catch (error) {
+        console.error("Error checking voting status:", error);
+      }
+    };
+
+    checkVotingStatus();
   }, [navigate]);
 
   useEffect(() => {

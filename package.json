@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "build:demo": "vite build --mode demo"
+    "build:demo": "vite build --mode demo",
+    "test": "node --import ./tests/setup.mjs --test 'tests/**/*.test.js'"
   },
   "dependencies": {
     "@cloudinary/react": "^1.14.3",

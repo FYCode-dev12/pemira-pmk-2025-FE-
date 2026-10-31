@@ -1,4 +1,4 @@
-import { apiFetch, getCsrfCookie } from "./apiClient";
+import { apiFetch } from "./apiClient";
 
 /**
  * Authentication Services

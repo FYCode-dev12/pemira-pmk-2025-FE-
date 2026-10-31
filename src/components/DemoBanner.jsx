@@ -29,6 +29,7 @@ const DemoBanner = () => {
     if (!DEMO_MODE) return;
     if (!document.title.startsWith("[DEMO]")) document.title = `[DEMO] ${document.title}`;
     try {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- read sessionStorage once after mount
       setIntro(!sessionStorage.getItem(INTRO_KEY));
     } catch {
       setIntro(true);

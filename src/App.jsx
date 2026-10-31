@@ -9,6 +9,7 @@ import VotingPage from "./pages/VotingPage";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
+import DemoBanner from "./components/DemoBanner";
 
 const queryClient = new QueryClient();
 
@@ -17,6 +18,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <DemoBanner />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />

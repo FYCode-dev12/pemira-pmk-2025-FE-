@@ -1,4 +1,5 @@
-import { API_BASE_URL, API_URL } from "../config/api";
+import { API_BASE_URL, API_URL, DEMO_MODE } from "../config/api";
+import { mockFetch } from "./mockApi";
 
 // Get token from localStorage
 const getAuthToken = () => {
@@ -22,6 +23,7 @@ const getCsrfToken = () => {
 
 // Get CSRF cookie from Sanctum
 export async function getCsrfCookie() {
+  if (DEMO_MODE) return;
   try {
     await fetch(`${API_URL}/sanctum/csrf-cookie`, {
       method: "GET",
@@ -33,6 +35,8 @@ export async function getCsrfCookie() {
 }
 
 export async function apiFetch(path, options = {}) {
+  if (DEMO_MODE) return mockFetch(path, options);
+
   const url = `${API_BASE_URL}${path}`;
   const token = getAuthToken();
   const csrfToken = getCsrfToken();
